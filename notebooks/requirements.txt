@@ -1,0 +1,10 @@
+# Install the CUDA build of torch FIRST on the cluster (TR H100 tip: use the cu124 wheel):
+#   pip install torch --index-url https://download.pytorch.org/whl/cu124
+#
+# then:
+transformers>=4.44
+datasets>=2.19,<3
+peft
+trl
+accelerate
+scikit-learn

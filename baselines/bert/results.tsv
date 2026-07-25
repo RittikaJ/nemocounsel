@@ -1,0 +1,3 @@
+commit	macro_f1	accuracy	seconds	status	description
+5ff1e2d	0.7373	0.8225	300	ok	GPU re-baseline: best Mac config (macro_f1=0.7228) with TRAIN_SIZE raised to 60000
+5ff1e2d	0.7338	0.8220	102	ok	GPU re-baseline: best Mac config (macro_f1=0.7228) with TRAIN_SIZE raised to 60000

@@ -1,0 +1,3 @@
+timestamp	macro_f1	accuracy	description
+1784830297	0.7373	0.8225	GPU re-baseline: best Mac config (macro_f1=0.7228) with TRAIN_SIZE raised to 60000
+1784830939	0.7338	0.8220	GPU re-baseline: best Mac config (macro_f1=0.7228) with TRAIN_SIZE raised to 60000

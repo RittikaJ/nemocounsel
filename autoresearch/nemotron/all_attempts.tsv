@@ -1,0 +1,8 @@
+timestamp	macro_f1	accuracy	unparsed	decision	description
+1784861017	0.3444	0.5300	unparsed=52/200	baseline	baseline: Qwen2.5-7B-Instruct + 4-bit QLoRA, generative classification, 500 train
+1784861814	0.2956	0.5300	unparsed=52/200	discarded	Llama-3.1-Nemotron-Nano-8B + 4-bit QLoRA, generative classification, full 60k train
+1784878941	0.7548	0.8750	unparsed=0/200	kept	60k train: 768-token context with target labels always retained
+1784893440	0.6801	0.8450	unparsed=0/200	discarded	60k train: complete 1-epoch cosine schedule within time budget
+1784909187	0.7941	0.9000	unparsed=0/200	kept	60k train: complete 2-epoch cosine schedule without internal time cutoff
+1784927882	0.8018	0.9050	unparsed=0/200	kept	60k train: extend LoRA adapters from attention to MLP projections
+1784962991	0.8246	0.9150	unparsed=0/200	kept	60k train: increase expanded-adapter LoRA rank from 16 to 32

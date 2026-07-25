@@ -1,0 +1,7 @@
+commit	macro_f1	accuracy	unparsed	seconds	status	description
+83d76a9	0.3444	0.5300	52	269	ok	baseline: Qwen2.5-7B-Instruct + 4-bit QLoRA, generative classification, 500 train
+83d76a9	0.2956	0.5300	52	176	ok	Llama-3.1-Nemotron-Nano-8B + 4-bit QLoRA, generative classification, full 60k train
+c94194b	0.7548	0.8750	0	14446	ok	60k train: 768-token context with target labels always retained
+74dd353	0.7941	0.9000	0	14698	ok	60k train: complete 2-epoch cosine schedule without internal time cutoff
+7f4a372	0.8018	0.9050	0	18299	ok	60k train: extend LoRA adapters from attention to MLP projections
+828e5e9	0.8246	0.9150	0	18352	ok	60k train: increase expanded-adapter LoRA rank from 16 to 32

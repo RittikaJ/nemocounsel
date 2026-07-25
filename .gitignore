@@ -1,0 +1,45 @@
+# Secrets and local configuration
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Environments
+.venv/
+venv/
+env/
+
+# Notebooks and editors
+.ipynb_checkpoints/
+.idea/
+.vscode/
+*~
+
+# Training outputs and downloaded models
+adapters/
+checkpoints/
+checkpoint-*/
+qwen-ledgar-run/
+nemotron-ledgar-run/
+models/
+*.safetensors
+*.bin
+*.pt
+*.pth
+
+# Volatile experiment output
+last_run.log
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
