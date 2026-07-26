@@ -28,8 +28,8 @@ slice.
 ![Nemotron experiment progress](autoresearch/nemotron/medium_report/assets/nemotron_progress.png)
 
 Read the illustrated, reproducible research report:
-**[From 0.2956 to 0.8246 Macro-F1: Autoresearching an 8B Legal Clause
-Classifier](autoresearch/nemotron/medium_report/nemocounsel-autoresearch.md)**.
+**[I Fine-Tuned an 8B AI to Read Legal Contracts—Here’s How It Actually
+Works](autoresearch/nemotron/medium_report/nemocounsel-autoresearch.md)**.
 
 ## Why NemoCounsel
 

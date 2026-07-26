@@ -1,8 +1,15 @@
-# From 0.2956 to 0.8246 Macro-F1: Autoresearching an 8B Legal Clause Classifier
+# I Fine-Tuned an 8B AI to Read Legal Contracts—Here’s How It Actually Works
 
-*How we used six controlled experiments, 4-bit LoRA, and a strict keep-or-discard loop to adapt NVIDIA’s Nemotron Nano 8B to LEDGAR.*
+*A beginner-friendly, reproducible walkthrough of LoRA, 4-bit training, loss,
+validation, and six real experiments.*
 
-> **Result:** our validation Macro-F1 rose from **0.2956 to 0.8246**, while exact-match accuracy reached **91.5%** and all 200 validation responses became parseable. This article reports only the six Nemotron experiments.
+You do not need to be a machine-learning engineer to follow this. We will start
+with what fine-tuning changes, unpack the vocabulary one concept at a time, and
+then reproduce a real run.
+
+> **The result:** after six controlled experiments, validation Macro-F1 rose
+> from **0.2956 to 0.8246**. Exact-match accuracy reached **91.5%**, and every
+> response in the 200-example validation set could be parsed.
 
 The complete implementation is open source in the
 [NemoCounsel GitHub repository](https://github.com/RittikaJ/nemocounsel).
@@ -20,6 +27,57 @@ We treated classification as constrained generation: the model saw an instructio
 
 The base model was [NVIDIA Llama-3.1-Nemotron-Nano-8B-v1](https://huggingface.co/nvidia/Llama-3.1-Nemotron-Nano-8B-v1). We adapted it with [LoRA](https://arxiv.org/abs/2106.09685) and loaded the backbone in 4-bit NF4, following the memory-efficient approach popularized by [QLoRA](https://arxiv.org/abs/2305.14314). The result is an adapter rather than another full copy of an 8B-parameter model.
 
+## Fine-tuning in plain English
+
+A pretrained language model has already learned general patterns from enormous
+amounts of text. Fine-tuning does not teach language from scratch. It gives the
+model repeated examples of a narrower behavior—in our case:
+
+```text
+Instruction + legal clause → correct clause category
+```
+
+During training, the model predicts the next token. The training program
+compares its prediction with the known answer and calculates a number called
+**loss**. A larger loss means the prediction was further from the target. The
+optimizer then makes a small parameter update intended to reduce similar errors
+next time. Repeating that cycle across thousands of examples gradually changes
+the model’s behavior.
+
+There are three datasets to keep conceptually separate:
+
+- **Training data** produces parameter updates.
+- **Validation data** does not update the model; it helps us compare experiments.
+- **Test data** should remain untouched until the configuration is frozen, giving
+  the most honest estimate of performance on unseen data.
+
+We used 60,000 training examples and a fixed 200-example validation slice. That
+validation set guided our experiments, so the final score is a validation
+result—not a test-set claim.
+
+## Why LoRA makes an 8B model practical
+
+The “8B” in the model name means roughly eight billion parameters. Updating and
+storing all of them is expensive. [LoRA](https://arxiv.org/abs/2106.09685)
+freezes the original weights and trains much smaller low-rank matrices alongside
+selected layers. Think of the base model as a large textbook and the LoRA
+adapter as a compact set of specialist annotations. At inference time, the two
+are loaded together.
+
+We also loaded the frozen backbone in **4-bit NF4** rather than keeping every
+weight at 16- or 32-bit precision. Quantization substantially lowers the memory
+needed to hold the model. The combination—quantized frozen weights plus
+trainable LoRA adapters—is commonly called QLoRA.
+
+Four terms will appear throughout the experiments:
+
+- **Epoch:** one pass over the complete training dataset.
+- **Batch size:** how many examples are processed together before accumulating
+  an update.
+- **Learning rate:** the size of each optimization step.
+- **LoRA rank (`r`):** the capacity of the trainable adapter; a higher rank can
+  learn more complex changes but uses more memory and may overfit.
+
 ## The research loop
 
 The workflow borrowed its discipline from Andrej Karpathy’s [autoresearch](https://github.com/karpathy/autoresearch): change one idea, run the whole evaluation, and let the metric decide whether that change survives.
@@ -34,6 +92,11 @@ For each experiment we:
 
 This matters because a plausible modification is not automatically an improvement. Experiment 3 in the public sequence—reducing training to one epoch—lowered Macro-F1 from 0.7548 to 0.6801, so it was discarded.
 
+In ordinary language, each run was a controlled question: *If everything else
+stays fixed and we change this one choice, does the model become better on the
+same validation examples?* This prevents several simultaneous changes from
+making the result impossible to explain.
+
 ## What changed across the six experiments
 
 | Experiment | Hypothesis tested | Macro-F1 | Accuracy | Decision |
@@ -46,6 +109,19 @@ This matters because a plausible modification is not automatically an improvemen
 | 6 | Increase expanded-adapter rank from 16 to 32 | **0.8246** | **0.9150** | **Kept** |
 
 The decisive improvement was not a larger rank or another epoch. It was fixing the input-target construction. With naïve truncation, the target tokens could be clipped off, leaving the model without a supervised answer to learn. Reserving space for the target and truncating only the prompt moved Macro-F1 by **+0.4592** in one experiment.
+
+That bug is easier to understand with a simplified training sequence:
+
+```text
+[long prompt and clause] [ANSWER: governing law]
+```
+
+If a fixed-length tokenizer simply cut everything after token 768, it could
+remove `ANSWER: governing law`. The example still occupied GPU time, but the
+model no longer received the part it was meant to learn. The fix first reserved
+space for the answer and then truncated only the prompt. This is a useful lesson
+for any beginner: inspect the exact tokens reaching the model before tuning
+hyperparameters.
 
 Two epochs then recovered another **+0.0393** over that retained checkpoint. Expanding adapter coverage to the MLP projections helped modestly, and raising LoRA rank to 32 produced the best final score.
 
@@ -83,6 +159,17 @@ The effective batch size was 16. We used a cosine learning-rate schedule with a 
 The final run completed 7,500 optimizer steps across two epochs. Its Trainer summary reported a mean training loss of **0.1805** and a runtime of about **18,305 seconds (5 h 05 m)**. The chart contains every loss record recoverable from the final raw log, plus a 21-point moving average; the underlying values are published as `data/final_training_history.tsv`.
 
 Loss is useful for checking optimization, but it was not the selection metric. The autoresearch loop selected experiments using validation Macro-F1 because class imbalance makes raw accuracy incomplete. Scikit-learn defines [Macro-F1](https://scikit-learn.org/stable/modules/generated/sklearn.metrics.f1_score.html) as the unweighted mean of per-class F1 values, giving each evaluated class equal influence.
+
+Why not select the model with the lowest training loss? A model can become very
+good at remembering its training examples without improving on unseen examples;
+this is **overfitting**. Training loss tells us whether optimization is working.
+Validation Macro-F1 tells us whether the learned behavior transfers to examples
+that did not produce weight updates.
+
+Accuracy is also insufficient for an imbalanced 100-category problem. If common
+categories dominate the validation set, a model can score well while failing
+rare categories. Macro-F1 first calculates F1 separately for each evaluated
+category and then gives those category scores equal weight.
 
 ## Reproduce the experiment
 
@@ -126,9 +213,7 @@ Reproducibility on GPUs is not an absolute promise. PyTorch explicitly notes tha
 
 ## Rebuild this article and its visuals
 
-The report is generated from the experiment ledger and checked-in final-run
-training history. If a local `last_run.log` is available, the builder reparses
-it and refreshes the derived training-history file:
+The report is generated directly from the experiment ledger and final log:
 
 ```bash
 cd nemocounsel/autoresearch/nemotron
@@ -138,8 +223,7 @@ python3 medium_report/build_report.py
 That command regenerates:
 
 - `data/nemotron_experiments.tsv`, containing only the six Nemotron experiments;
-- `data/final_training_history.tsv`, parsed from `last_run.log` when available
-  and otherwise reused as the checked-in reproducibility artifact;
+- `data/final_training_history.tsv`, parsed from `last_run.log`;
 - all report graphics;
 - a self-contained HTML file with embedded images.
 

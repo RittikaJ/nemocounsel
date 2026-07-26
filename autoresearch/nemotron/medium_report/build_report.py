@@ -222,7 +222,7 @@ def build_html() -> None:
     html = (
         "<!doctype html><html><head><meta charset='utf-8'>"
         "<meta name='viewport' content='width=device-width,initial-scale=1'>"
-        "<title>NemoCounsel Autoresearch</title><style>"
+        "<title>I Fine-Tuned an 8B AI to Read Legal Contracts</title><style>"
         + css
         + "</style></head><body><main>"
         + body
