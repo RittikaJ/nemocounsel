@@ -25,7 +25,11 @@ The final accepted configuration reached **0.8246 macro-F1**, **91.50%
 accuracy**, and **0 unparsed responses** on the fixed 200-clause validation
 slice.
 
-![All NemoCounsel autoresearch attempts](assets/results/all_attempts_report.png)
+![Nemotron experiment progress](autoresearch/nemotron/medium_report/assets/nemotron_progress.png)
+
+Read the illustrated, reproducible research report:
+**[From 0.2956 to 0.8246 Macro-F1: Autoresearching an 8B Legal Clause
+Classifier](autoresearch/nemotron/medium_report/nemocounsel-autoresearch.md)**.
 
 ## Why NemoCounsel
 
@@ -51,14 +55,13 @@ flowchart LR
 
 ## Results
 
-Every completed experiment is preserved in
-[`all_attempts.tsv`](autoresearch/nemotron/all_attempts.tsv), including each
-keep/discard decision. The runner's scored execution log is retained in
-[`results.tsv`](autoresearch/nemotron/results.tsv).
+The publication-ready six-experiment Nemotron sequence is preserved in
+[`nemotron_experiments.tsv`](autoresearch/nemotron/medium_report/data/nemotron_experiments.tsv),
+including each keep/discard decision. The runner's source ledger and scored
+execution log remain available under `autoresearch/nemotron/`.
 
 | Experiment | Macro-F1 | Accuracy | Unparsed | Decision |
 |---|---:|---:|---:|---|
-| Qwen 2.5 baseline, 500 examples | 0.3444 | 0.5300 | 52/200 | Baseline |
 | Initial Nemotron full-data run | 0.2956 | 0.5300 | 52/200 | Discarded |
 | Preserve target labels with 768-token context | 0.7548 | 0.8750 | 0/200 | Kept |
 | One-epoch cosine schedule | 0.6801 | 0.8450 | 0/200 | Discarded |
